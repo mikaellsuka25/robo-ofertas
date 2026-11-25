@@ -17,7 +17,11 @@ Custo: só o servidor, uns R$ 30 a 50 por mês.
 - Se der para escolher, prefira o datacenter no **Brasil**.
 - Defina uma senha de root e anote.
 
-## 3. Colocar o código no GitHub (10 minutos, uma vez só)
+## 3. Código no GitHub
+Já está em github.com/mikaellsuka25/robo-ofertas. Pule este passo.
+
+<!-- passo antigo -->
+## (antigo) Colocar o código no GitHub
 1. Crie uma conta grátis em **github.com**.
 2. Toque em **New repository**, use o nome `robo-ofertas` e marque **Public**. O código não tem nenhuma senha sua.
 3. No computador, descompacte o `robo-ofertas.zip`.
@@ -27,10 +31,10 @@ Custo: só o servidor, uns R$ 30 a 50 por mês.
 
 ## 4. Instalar (1 comando)
 1. No painel da VPS, abra o **Terminal** (no navegador mesmo; na Hostinger fica em "Terminal do navegador").
-2. Cole o comando abaixo, trocando `SEU_USUARIO` pelo seu usuário do GitHub, e aperte Enter:
+2. Cole o comando abaixo e aperte Enter:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/SEU_USUARIO/robo-ofertas/main/instalar.sh | bash -s https://github.com/SEU_USUARIO/robo-ofertas
+curl -fsSL https://raw.githubusercontent.com/mikaellsuka25/robo-ofertas/main/instalar.sh | bash -s https://github.com/mikaellsuka25/robo-ofertas
 ```
 
 3. Espere uns 5 minutos. No fim aparece:

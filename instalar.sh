@@ -2,7 +2,7 @@
 # Instalador do Robô de Ofertas — rode no servidor (Ubuntu) como root:
 #   bash instalar.sh
 # ou, se o código estiver no GitHub:
-#   curl -fsSL https://raw.githubusercontent.com/SEU_USUARIO/robo-ofertas/main/instalar.sh | bash -s https://github.com/SEU_USUARIO/robo-ofertas
+#   curl -fsSL https://raw.githubusercontent.com/mikaellsuka25/robo-ofertas/main/instalar.sh | bash -s https://github.com/mikaellsuka25/robo-ofertas
 set -euo pipefail
 
 DIR=/opt/robo-ofertas
