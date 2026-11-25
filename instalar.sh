@@ -31,18 +31,19 @@ fi
 cd "$DIR"
 
 say "3/4 Criando senhas"
-if [ ! -f .env ]; then
-  rnd() { tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$1"; }
-  PANEL_PASSWORD="$(rnd 10)"
-  cat > .env <<EOF
-# Senha para entrar no painel
+rnd() { tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$1"; }
+getv() { [ -f .env ] && grep "^$1=" .env | head -1 | cut -d= -f2- || true; }
+PANEL_PASSWORD="$(getv PANEL_PASSWORD)"; PANEL_PASSWORD="${PANEL_PASSWORD:-$(rnd 10)}"
+EVO_KEY="$(getv EVOLUTION_API_KEY)"; EVO_KEY="${EVO_KEY:-$(rnd 32)}"
+PG_PASS="$(getv POSTGRES_PASSWORD)"; PG_PASS="${PG_PASS:-$(rnd 24)}"
+cat > .env <<EOF2
 PANEL_PASSWORD=$PANEL_PASSWORD
-# Chaves internas (não precisa mexer)
-EVOLUTION_API_KEY=$(rnd 32)
-POSTGRES_PASSWORD=$(rnd 24)
-EOF
-  chmod 600 .env
-fi
+EVOLUTION_API_KEY=$EVO_KEY
+AUTHENTICATION_API_KEY=$EVO_KEY
+POSTGRES_PASSWORD=$PG_PASS
+DATABASE_CONNECTION_URI=postgresql://evolution:$PG_PASS@postgres:5432/evolution?schema=public
+EOF2
+chmod 600 .env
 PANEL_PASSWORD="$(grep '^PANEL_PASSWORD=' .env | cut -d= -f2-)"
 
 if command -v ufw >/dev/null 2>&1 && ufw status | grep -q active; then ufw allow 80/tcp >/dev/null; fi
