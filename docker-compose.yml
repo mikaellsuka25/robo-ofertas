@@ -6,7 +6,7 @@ services:
     build: ./app
     restart: always
     ports:
-      - "80:3000"            # painel: http://IP-DO-SERVIDOR
+      - "${PORTA:-80}:3000"   # painel: http://IP-DO-SERVIDOR (no PC: http://localhost:3000)
     env_file: .env
     environment:
       EVOLUTION_URL: http://evolution:8080
