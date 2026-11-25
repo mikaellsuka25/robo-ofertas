@@ -63,8 +63,10 @@ async function groups() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function sendOffer(groupId, { text, imageUrl }) {
-  if (imageUrl) {
+async function sendOffer(groupId, { text, imageUrl, mode = 'preview' }) {
+  // mode 'preview': só texto, o WhatsApp monta a prévia do link (foto pequena, sem baixar)
+  // mode 'imagem': foto grande com o texto como legenda
+  if (mode === 'imagem' && imageUrl) {
     try {
       return await call('POST', `/message/sendMedia/${INSTANCE}`, {
         number: groupId, mediatype: 'image', mimetype: 'image/jpeg',

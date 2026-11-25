@@ -81,8 +81,9 @@ test('envia para todos os grupos escolhidos e marca como enviado', async () => {
   await robot.sendOne(o);
   assert.strictEqual(sent.length, 1);
   assert.strictEqual(sent[0].body.number, '111@g.us');
-  assert.strictEqual(sent[0].body.mediatype, 'image');
-  assert.match(sent[0].body.caption, /s\.shopee\.com\.br\/fone/);
+  assert.match(sent[0].url, /sendText/, 'padrão é prévia do link');
+  assert.strictEqual(sent[0].body.linkPreview, true);
+  assert.match(sent[0].body.text, /s\.shopee\.com\.br\/fone/);
   assert.strictEqual(store.db.prepare('SELECT status FROM offers WHERE id=?').get(o.id).status, 'sent');
   await robot.sendOne(o); // segunda vez não pode reenviar
   assert.strictEqual(sent.length, 1);

@@ -46,6 +46,7 @@ const DEFAULTS = {
   repost_after_days: '7',      // pode repetir o mesmo produto depois de X dias
   groups: '[]',                // grupos escolhidos (JSON)
   paused: '0',
+  send_mode: 'preview',        // preview = prévia do link | imagem = foto grande
   shopee_app_id: '',
   shopee_secret: '',
   template:

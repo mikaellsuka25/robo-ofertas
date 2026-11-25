@@ -119,7 +119,7 @@ async function sendOne(offer) {
   const errors = [];
   for (let i = 0; i < groups.length; i++) {
     try {
-      await wa.sendOffer(groups[i].id, { text, imageUrl: offer.image_url });
+      await wa.sendOffer(groups[i].id, { text, imageUrl: offer.image_url, mode: store.get('send_mode') });
     } catch (err) {
       errors.push(`${groups[i].name}: ${err.message}`);
     }

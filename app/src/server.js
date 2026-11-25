@@ -176,8 +176,11 @@ function verPage(id) {
   const o = db.prepare('SELECT * FROM offers WHERE id=?').get(id);
   if (!o) return page(P('/fila', 'Fila'), '<p>Não encontrada.</p>');
   return page(P('/fila', 'Fila'), `<div class="card"><h2>Como vai ficar no WhatsApp</h2>
-    ${o.image_url ? `<img src="${esc(o.image_url)}" style="max-width:260px;border-radius:8px">` : ''}
-    <pre>${esc(robot.formatMessage(o))}</pre><a class="btn sec" href="/fila">Voltar</a></div>`);
+    ${store.get('send_mode') === 'imagem' && o.image_url ? `<img src="${esc(o.image_url)}" style="max-width:260px;border-radius:8px">` : ''}
+    <pre>${esc(robot.formatMessage(o))}</pre>
+    ${store.get('send_mode') !== 'imagem' ? `<div style="display:flex;gap:10px;align-items:center;background:#f0f2f5;border-radius:8px;padding:8px;max-width:340px">
+      ${o.image_url ? `<img src="${esc(o.image_url)}" style="width:64px;height:64px;object-fit:cover;border-radius:6px">` : ''}
+      <small>Prévia do link (aproximada): o WhatsApp mostra a foto e o nome do produto dentro da mensagem.</small></div>` : ''}<a class="btn sec" href="/fila">Voltar</a></div>`);
 }
 
 function manualPage(url) {
@@ -215,6 +218,14 @@ function configPage(url) {
     ${f('hour_start', 'Começa às (hora)')}${f('hour_end', 'Para às (hora)')}
     ${f('max_per_day', 'Máximo por dia')}${f('repost_after_days', 'Repetir produto após (dias)')}
   </div></div>
+  <div class="card"><h2>Formato da mensagem</h2>
+    <label>Como a oferta aparece no grupo</label>
+    <select name="send_mode">
+      <option value="preview" ${s.send_mode !== 'imagem' ? 'selected' : ''}>Prévia do link (foto pequena dentro da mensagem, não precisa baixar)</option>
+      <option value="imagem" ${s.send_mode === 'imagem' ? 'selected' : ''}>Foto grande com legenda</option>
+    </select>
+    <small>Na prévia do link, quem monta a foto é o próprio WhatsApp a partir do link.</small>
+  </div>
   <div class="card"><h2>Modelo da mensagem</h2>
     <textarea name="template" style="min-height:170px">${esc(s.template)}</textarea>
     <small>Campos: {titulo} {preco} {preco_antigo} {desconto} {nota} {vendas} {comissao} {link}. *negrito*, _itálico_, ~riscado~. Linhas com campo vazio somem sozinhas.</small>
@@ -289,6 +300,7 @@ async function handle(req, res) {
     for (const k of NUM_KEYS) if (form[k] !== undefined && form[k] !== '' && isFinite(Number(form[k]))) store.set(k, form[k]);
     if (typeof form.keywords === 'string') store.set('keywords', form.keywords.trim());
     if (typeof form.template === 'string' && form.template.includes('{link}')) store.set('template', form.template.replace(/\r/g, ''));
+    if (form.send_mode === 'preview' || form.send_mode === 'imagem') store.set('send_mode', form.send_mode);
     if (form.shopee_app_id !== undefined) store.set('shopee_app_id', String(form.shopee_app_id).trim());
     if (form.shopee_secret) store.set('shopee_secret', String(form.shopee_secret).trim());
     if (form.testar) {
