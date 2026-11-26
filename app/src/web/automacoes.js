@@ -5,7 +5,7 @@ const dispatch = require('../dispatch');
 const products = require('../products');
 const engine = require('../automations');
 const shopee = require('../shopee');
-const { esc, brl, when, field, area, select, check, pill } = require('./ui');
+const { waHtml, esc, brl, when, field, area, select, check, pill } = require('./ui');
 const { destPicker, templateOptions } = require('./envios');
 
 const { db, log, parse } = store;
@@ -290,8 +290,8 @@ module.exports = (r) => {
     ctx.page('Mensagem', '/automacoes', `<h1>Como vai ficar</h1><div class="card">
       ${img ? `<img src="${esc(img)}" style="max-width:300px;border-radius:8px;display:block;margin-bottom:6px">` : ''}
       ${!img && msg.preview && msg.product && msg.product.image_url ? `<div style="display:flex;gap:8px;align-items:center;background:#f0f2f5;border-radius:8px;padding:8px;max-width:420px;margin-bottom:6px"><img src="${esc(msg.product.image_url)}" style="width:64px;height:64px;object-fit:cover;border-radius:6px"><small>Prévia do link (aproximada)</small></div>` : ''}
-      <div class="wa">${esc(msg.text)}</div>
-      <p class="row" style="margin-top:12px">${q.status === 'pending' ? `<form method="post" action="/fila/${q.id}/enviar"><button>Enviar agora</button></form>` : ''}<a class="btn sec" href="${back}">Voltar</a></p></div>`);
+      <div class="wa">${waHtml(msg.text)}</div>
+      <div class="row" style="margin-top:12px">${q.status === 'pending' ? `<form method="post" action="/fila/${q.id}/enviar"><button>Enviar agora</button></form>` : ''}<a class="btn sec" href="${back}">Voltar</a></div></div>`);
   });
   r.post('/fila/:id/:acao', (ctx) => {
     const q = db.prepare(`SELECT * FROM queue WHERE id=? AND status='pending'`).get(Number(ctx.params.id));

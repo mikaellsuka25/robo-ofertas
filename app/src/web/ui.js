@@ -92,4 +92,7 @@ const STATE = {
 };
 const stateLabel = (s) => { const [l, c] = STATE[s] || [s, 'warn']; return `<span class="${c}">${l}</span>`; };
 
-module.exports = { esc, brl, when, layout, flash, field, area, select, check, pill, stateLabel, MENU };
+// Mostra a formatação do WhatsApp (*negrito* ~riscado~ _itálico_) na prévia
+const waHtml = (t) => require('../telegram').toHtml(t);
+
+module.exports = { waHtml, esc, brl, when, layout, flash, field, area, select, check, pill, stateLabel, MENU };

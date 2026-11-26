@@ -37,11 +37,11 @@ module.exports = (r) => {
         <div class="stat"><small>Falhas hoje</small><b class="${failToday ? 'bad' : ''}">${failToday}</b></div>
         <div class="stat"><small>Grupos de destino</small><b>${dests}</b></div>
       </div>
-      <p class="row" style="margin-top:12px">
+      <div class="row" style="margin-top:12px">
         <form method="post" action="/acao/pausar-tudo"><button class="${paused ? '' : 'sec'}">${paused ? '▶️ Retomar todos os envios' : '⏸️ Pausar todos os envios'}</button></form>
         <a class="btn sec" href="/envio-direto">Envio direto</a><a class="btn sec" href="/envio-manual">Envio manual</a>
         <a class="btn sec" href="/automacoes/nova">Nova automação</a>
-      </p>${paused ? '<p class="warn"><b>Todos os envios estão pausados.</b> As automações continuam guardando ofertas na fila.</p>' : ''}</div>
+      </div>${paused ? '<p class="warn"><b>Todos os envios estão pausados.</b> As automações continuam guardando ofertas na fila.</p>' : ''}</div>
       <div class="card"><h2>WhatsApp</h2>
         ${instances.map((i, k) => `<div class="row" style="justify-content:space-between;border-top:1px solid #eee;padding:8px 0">
           <span><b>${esc(i.label || i.name)}</b> <small>(${esc(i.name)})</small></span><span>${stateLabel(states[k])}</span></div>`).join('') || '<p class="muted">Nenhum número cadastrado.</p>'}

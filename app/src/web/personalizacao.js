@@ -2,7 +2,7 @@
 const store = require('../db');
 const render = require('../render');
 const engine = require('../automations');
-const { esc, brl, when, field, area, select, check } = require('./ui');
+const { waHtml, esc, brl, when, field, area, select, check } = require('./ui');
 
 const { db } = store;
 
@@ -42,7 +42,7 @@ module.exports = (r) => {
       ${list.map((t, k) => `<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(t.name)} <small class="muted">(${t.store === 'any' ? 'qualquer loja' : 'Shopee'})</small></h2>
         <div class="row"><a class="btn small sec" href="/textos?editar=${t.id}">Editar</a>
         <form method="post" action="/textos/${t.id}/excluir" onsubmit="return confirm('Excluir este texto?')"><button class="small danger">Excluir</button></form></div></div>
-        <p class="muted" style="margin:8px 0 4px">Como fica:</p><div class="wa">${esc(previews[k])}</div></div>`).join('')}
+        <p class="muted" style="margin:8px 0 4px">Como fica:</p><div class="wa">${waHtml(previews[k])}</div></div>`).join('')}
       <div class="card"><h2>Chamada (CTA)</h2>
         <form method="post" action="/textos/cta">
         ${area('cta_guide', 'Como a chamada deve ser escrita', s.cta_guide, { rows: 4, hint: 'Tom, público, bordões e o que evitar. Vale quando há uma chave de IA em Credenciais; sem chave, o robô usa o banco de frases prontas por tipo de produto.' })}
@@ -116,7 +116,7 @@ module.exports = (r) => {
         <tr><td>Preço "De"</td><td>${t.old_price ? brl(t.old_price) : '<span class="muted">do produto</span>'}</td></tr>
         <tr><td>Cupom</td><td>${t.coupon ? `${esc(t.coupon.code || t.coupon.link)} · ${render.couponValueLabel(t.coupon)}${t.coupon.min_price ? ` (mín. ${brl(t.coupon.min_price)})` : ''}` : '<span class="muted">nenhum (precisa de #cupom ou #cupomlink junto com #desconto)</span>'}</td></tr>
         <tr><td>Frase extra</td><td>${esc(t.extra_text || '-')}</td></tr></table>
-        <p class="muted" style="margin:10px 0 4px">Com um produto de exemplo, fica assim:</p><div class="wa">${esc(out.text)}</div></div>`;
+        <p class="muted" style="margin:10px 0 4px">Com um produto de exemplo, fica assim:</p><div class="wa">${waHtml(out.text)}</div></div>`;
     }
     ctx.page('Tags', '/tags', `<h1>Tags de preço e cupom</h1>
       <div class="card"><p>No seu <b>grupo de origem</b>, escreva as tags em linhas próprias, junto do link. Elas somem da mensagem final.</p>

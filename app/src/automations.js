@@ -277,6 +277,16 @@ async function tick() {
   try {
     const now = Date.now();
     const paused = store.get('paused') === '1';
+    // faxina diária: imagens capturadas com mais de 7 dias
+    if (store.get('cleanup_uploads') !== new Date().toDateString()) {
+      store.set('cleanup_uploads', new Date().toDateString());
+      const fs = require('node:fs'), path = require('node:path');
+      const dir = path.join(store.DATA_DIR, 'uploads');
+      const inUse = new Set(db.prepare(`SELECT payload FROM queue WHERE status='pending'`).all().map((q) => parse(q.payload, {}).image_file).filter(Boolean));
+      for (const f of fs.readdirSync(dir)) {
+        try { if (!inUse.has(f) && now - fs.statSync(path.join(dir, f)).mtimeMs > 7 * 86400000) fs.unlinkSync(path.join(dir, f)); } catch {}
+      }
+    }
     // envios avulsos agendados (Envio Manual/Direto)
     if (!paused) {
       const due = db.prepare(`SELECT * FROM queue WHERE automation_id IS NULL AND status='pending' AND send_after<=? ORDER BY send_after, id LIMIT 5`).all(now);

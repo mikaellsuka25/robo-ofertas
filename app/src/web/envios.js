@@ -4,7 +4,7 @@ const products = require('../products');
 const dispatch = require('../dispatch');
 const render = require('../render');
 const shopee = require('../shopee');
-const { esc, brl, when, field, area, select, check } = require('./ui');
+const { waHtml, esc, brl, when, field, area, select, check } = require('./ui');
 
 const { db, log, parse } = store;
 
@@ -229,7 +229,7 @@ module.exports = (r) => {
         ${field('cta_ai', 'Chamada (CTA)', p.cta_ai || '', { hint: 'Vazio = gerar de novo' })}
         ${field('image_url', 'Link da imagem', p.image_url || '')}
       </div><p><button>Salvar</button> <a class="btn sec" href="/envio-direto?produtos=${p.id}">Enviar</a></p></div></form>
-      <div class="card"><h2>Como fica com o modelo padrão</h2><div class="wa">${esc(preview)}</div></div>`);
+      <div class="card"><h2>Como fica com o modelo padrão</h2><div class="wa">${waHtml(preview)}</div></div>`);
   });
   r.post('/feed/:id', (ctx) => {
     const f = ctx.form, id = Number(ctx.params.id);

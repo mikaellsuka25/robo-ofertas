@@ -41,9 +41,15 @@ async function ensureInstance(instance) {
     await call('GET', `/instance/connectionState/${enc(instance)}`);
   } catch (err) {
     if (err.status !== 404) throw err;
-    await call('POST', '/instance/create', { instanceName: instance, qrcode: true, integration: 'WHATSAPP-BAILEYS' });
+    await call('POST', '/instance/create', { instanceName: instance, qrcode: true, integration: 'WHATSAPP-BAILEYS', groupsIgnore: false });
   }
   await setWebhook(instance);
+  // o robô precisa "ouvir" os grupos (origem/monitorados); não marca mensagens como lidas
+  try {
+    await call('POST', `/settings/set/${enc(instance)}`, {
+      rejectCall: false, groupsIgnore: false, alwaysOnline: false, readMessages: false, readStatus: false, syncFullHistory: false,
+    });
+  } catch {}
 }
 
 async function state(instance) {
