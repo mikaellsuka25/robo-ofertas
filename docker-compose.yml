@@ -20,11 +20,14 @@ services:
     image: evoapicloud/evolution-api:v2.3.7
     restart: always
     # sem "ports": o WhatsApp fica fechado para a internet, só o robô fala com ele
-    env_file: .env             # AUTHENTICATION_API_KEY e DATABASE_CONNECTION_URI vêm daqui
+    env_file: .env             # AUTHENTICATION_API_KEY vem daqui
     environment:
       SERVER_URL: http://evolution:8080
       DATABASE_ENABLED: "true"
       DATABASE_PROVIDER: postgresql
+      # o banco só existe dentro do Docker (sem porta aberta), então a senha é fixa:
+      # assim ela nunca fica diferente da senha com que o banco foi criado
+      DATABASE_CONNECTION_URI: postgresql://evolution:evolution_interno@postgres:5432/evolution?schema=public
       DATABASE_CONNECTION_CLIENT_NAME: robo_ofertas
       DATABASE_SAVE_DATA_INSTANCE: "true"
       DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
@@ -53,9 +56,9 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: always
-    env_file: .env             # POSTGRES_PASSWORD vem daqui
     environment:
       POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: evolution_interno
       POSTGRES_DB: evolution
     volumes:
       - postgres_data:/var/lib/postgresql/data

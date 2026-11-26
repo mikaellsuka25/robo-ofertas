@@ -35,13 +35,10 @@ rnd() { tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$1"; }
 getv() { [ -f .env ] && grep "^$1=" .env | head -1 | cut -d= -f2- || true; }
 PANEL_PASSWORD="$(getv PANEL_PASSWORD)"; PANEL_PASSWORD="${PANEL_PASSWORD:-$(rnd 10)}"
 EVO_KEY="$(getv EVOLUTION_API_KEY)"; EVO_KEY="${EVO_KEY:-$(rnd 32)}"
-PG_PASS="$(getv POSTGRES_PASSWORD)"; PG_PASS="${PG_PASS:-$(rnd 24)}"
 cat > .env <<EOF2
 PANEL_PASSWORD=$PANEL_PASSWORD
 EVOLUTION_API_KEY=$EVO_KEY
 AUTHENTICATION_API_KEY=$EVO_KEY
-POSTGRES_PASSWORD=$PG_PASS
-DATABASE_CONNECTION_URI=postgresql://evolution:$PG_PASS@postgres:5432/evolution?schema=public
 EOF2
 chmod 600 .env
 PANEL_PASSWORD="$(grep '^PANEL_PASSWORD=' .env | cut -d= -f2-)"
