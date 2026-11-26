@@ -58,12 +58,17 @@ const DEFAULTS = {
   shopee_app_id: '',
   shopee_secret: '',
   template:
-    '🔥 *{titulo}*\n\n' +
-    '~De R$ {preco_antigo}~\n' +
-    '💰 *Por R$ {preco}*  ({desconto}% OFF)\n' +
-    '⭐ {nota} · {vendas} vendidos\n\n' +
-    '🛒 {link}',
+    '*{chamada}*\n\n' +
+    '🛍️ {titulo}\n\n' +
+    'De ~R$ {preco_antigo}~\n' +
+    '*Por R$ {preco}* 🔥\n\n' +
+    '🛒 *Compre aqui:*\n' +
+    '{link}',
 };
+
+// Quem ainda está com o modelo antigo passa para o novo automaticamente
+const OLD_TEMPLATE = '🔥 *{titulo}*\n\n~De R$ {preco_antigo}~\n💰 *Por R$ {preco}*  ({desconto}% OFF)\n⭐ {nota} · {vendas} vendidos\n\n🛒 {link}';
+db.prepare(`DELETE FROM settings WHERE key='template' AND replace(value, char(13), '') = ?`).run(OLD_TEMPLATE);
 
 function get(key) {
   const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);

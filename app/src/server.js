@@ -230,9 +230,11 @@ function configPage(url) {
   </div>
   <div class="card"><h2>Modelo da mensagem</h2>
     <textarea name="template" style="min-height:170px">${esc(s.template)}</textarea>
-    <small>Campos: {titulo} {preco} {preco_antigo} {desconto} {nota} {vendas} {comissao} {link}. *negrito*, _itálico_, ~riscado~. Linhas com campo vazio somem sozinhas.</small>
+    <small>Campos: {chamada} (frase em maiúsculas) {titulo} {preco} {preco_antigo} {desconto} {nota} {vendas} {comissao} {link}. *negrito*, _itálico_, ~riscado~. Linhas com campo vazio somem sozinhas.</small>
   </div>
-  <p><button>Salvar configurações</button></p></form>`);
+  <p><button>Salvar configurações</button></p></form>
+  <form method="post" action="/config/modelo-padrao" onsubmit="return confirm('Voltar ao modelo padrão da mensagem?')">
+  <button class="sec small">Restaurar modelo padrão da mensagem</button></form>`);
 }
 
 // ---------- Roteador ----------
@@ -328,6 +330,10 @@ async function handle(req, res) {
       return back('/manual', 'Enviando para os grupos…');
     }
     return back('/manual', 'Colocado como próxima oferta da fila.');
+  }
+  if (p === '/config/modelo-padrao') {
+    db.prepare(`DELETE FROM settings WHERE key='template'`).run();
+    return back('/config', 'Modelo da mensagem restaurado.');
   }
   if (p === '/fila/limpar') {
     const r = db.prepare(`UPDATE offers SET status='skipped', error='fila limpa' WHERE status='pending'`).run();

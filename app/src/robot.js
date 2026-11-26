@@ -2,6 +2,7 @@
 const store = require('./db');
 const shopee = require('./shopee');
 const wa = require('./whatsapp');
+const { chamada } = require('./chamadas');
 
 const { db, log } = store;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -16,8 +17,9 @@ function formatMessage(offer, template = store.get('template')) {
     const t = (offer.extra_text || '').trim();
     return t.includes(offer.link) || !offer.link ? t : `${t}\n\n🛒 ${offer.link}`.trim();
   }
-  const title = (offer.title || '').length > 90 ? offer.title.slice(0, 87) + '...' : offer.title || '';
+  const title = (offer.title || '').length > 90 ? offer.title.slice(0, 87).trim() + '...' : offer.title || '';
   const values = {
+    chamada: chamada(family(offer), offer.item_key || offer.title),
     titulo: title,
     preco: brl(offer.price),
     preco_antigo: offer.old_price && offer.old_price > offer.price ? brl(offer.old_price) : '',

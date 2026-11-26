@@ -50,14 +50,11 @@ test.after(() => { fake.close(); if (panel) panel.close(); });
 
 test('formata a mensagem e esconde linhas vazias', () => {
   const robot = require('../src/robot');
-  const msg = robot.formatMessage({ source: 'shopee', title: 'Air Fryer', price: 249.9, old_price: 499.8, discount: 50, rating: 4.76, sales: 1200, link: 'https://l' });
-  assert.match(msg, /\*Air Fryer\*/);
-  assert.match(msg, /~De R\$ 499,80~/);
-  assert.match(msg, /\*Por R\$ 249,90\*  \(50% OFF\)/);
-  assert.match(msg, /4\.8 · 1\.200 vendidos/);
+  const msg = robot.formatMessage({ source: 'shopee', item_key: '9', title: 'Lixeira Inox 5 Litros Cesto Com Pedal', price: 49.99, old_price: 71.41, discount: 30, link: 'https://s.shopee.com.br/1W1' });
+  assert.strictEqual(msg, '*ATÉ O LIXO GANHA UM CANTINHO DISCRETO E ORGANIZADO NA CASA*\n\n🛍️ Lixeira Inox 5 Litros Cesto Com Pedal\n\nDe ~R$ 71,41~\n*Por R$ 49,99* 🔥\n\n🛒 *Compre aqui:*\nhttps://s.shopee.com.br/1W1');
   const semDesconto = robot.formatMessage({ source: 'shopee', title: 'X', price: 10, discount: 0, link: 'https://l' });
   assert.doesNotMatch(semDesconto, /De R\$/);
-  assert.doesNotMatch(semDesconto, /OFF/);
+  assert.match(semDesconto, /\*Por R\$ 10,00\* 🔥/);
 });
 
 test('busca na Shopee com assinatura certa, filtra e não duplica', async () => {
