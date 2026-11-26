@@ -83,9 +83,10 @@ function hash(str) {
   return h;
 }
 
-function chamada(tipo, chave) {
+function chamada(tipo, chave, maiusculas = true) {
   const lista = (tipo && POR_TIPO[tipo]) || GENERICAS;
-  return lista[hash(chave) % lista.length].toUpperCase();
+  const frase = lista[hash(chave) % lista.length];
+  return maiusculas ? frase.toLocaleUpperCase('pt-BR') : frase;
 }
 
 module.exports = { chamada, POR_TIPO, GENERICAS };

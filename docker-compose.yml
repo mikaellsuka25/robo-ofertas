@@ -10,6 +10,7 @@ services:
     env_file: .env
     environment:
       EVOLUTION_URL: http://evolution:8080
+      SELF_URL: http://robo:3000       # endereço que o WhatsApp usa para avisar o robô de mensagens novas
       EVOLUTION_INSTANCE: robo
     volumes:
       - robo_data:/data

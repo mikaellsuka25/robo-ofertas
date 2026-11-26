@@ -1,8 +1,9 @@
 FROM node:22-alpine
 ENV NODE_ENV=production TZ=America/Sao_Paulo DATA_DIR=/data
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata font-dejavu fontconfig
 WORKDIR /app
-COPY package.json ./
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund
 COPY src ./src
 VOLUME /data
 EXPOSE 3000
