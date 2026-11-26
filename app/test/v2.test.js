@@ -205,6 +205,7 @@ test('filtros e substituições não mexem em links', () => {
   assert.match(text.checkFilters({ block: 'usado, réplica' }, { text: 'Tênis RÉPLICA top' }), /replica/);
   assert.strictEqual(text.checkFilters({ only: 'casa' }, { text: 'Toalha para casa' }), null);
   assert.strictEqual(text.applyReplacements('Corre no link https://s.shopee.com.br/corre corre!', 'corre => voa'), 'voa no link https://s.shopee.com.br/corre voa!');
+  assert.strictEqual(text.removeLines('MARAVILHOSA\nBoleira\nhttps://s.shopee.com.br/x\n\n> curadoria @gii.promodecasa', 'curadoria'), 'MARAVILHOSA\nBoleira\nhttps://s.shopee.com.br/x');
   assert.strictEqual(text.parsePrice('R$ 1.234,56'), 1234.56);
   assert.strictEqual(text.parsePrice('89.90'), 89.9);
 });

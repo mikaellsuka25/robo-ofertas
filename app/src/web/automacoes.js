@@ -113,6 +113,7 @@ async function form(a) {
         ${field('f_price_max', 'Preço abaixo de (R$)', c.filters.price_max, { type: 'number', attrs: 'step="0.01"' })}
         ${type === 'busca' ? '' : field('f_min_discount', 'Desconto mínimo (%)', c.filters.min_discount, { type: 'number' })}
       </div>
+      ${area('f_remove_lines', 'Apagar linhas que contêm', c.filters.remove_lines, { rows: 2, hint: 'Separe por vírgula. Ex.: curadoria, @gii.promodecasa. A linha inteira some (linhas com link nunca são apagadas).' })}
       ${area('f_replace', 'Substituir palavras (uma regra por linha: <code>de => para</code>)', c.filters.replace, { rows: 3, hint: 'Deixe vazio depois de => para apagar. Links e preços nunca são alterados.' })}</div>`;
 
   return `<form method="post" action="/automacoes/${a.id || 'nova'}">
@@ -148,7 +149,7 @@ function readForm(f, type, old = {}) {
     image_style: ['padrao', 'enquadrada', 'original'].includes(f.image_style) ? f.image_style : 'padrao',
     templates: f.getAll('templates').map(Number).slice(0, 6), coupons: f.getAll('coupons').map(Number),
     filters: {
-      block: f.f_block || '', only: f.f_only || '', replace: String(f.f_replace || '').replace(/\r/g, ''),
+      block: f.f_block || '', only: f.f_only || '', replace: String(f.f_replace || '').replace(/\r/g, ''), remove_lines: String(f.f_remove_lines || '').replace(/\r/g, ''),
       price_min: n('f_price_min'), price_max: n('f_price_max'), min_discount: n('f_min_discount'),
     },
   };

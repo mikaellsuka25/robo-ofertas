@@ -181,7 +181,7 @@ const AUTOMATION_DEFAULTS = {
     instance: '', dest: [], dest_categories: [], hour_start: '08:00', hour_end: '22:00',
     mode: 'fila', interval_min: 10, jitter_min: 2, media: 'preview', image_style: 'padrao',
     templates: [], coupons: [], max_per_day: 0,
-    filters: { block: '', only: '', replace: '', price_min: 0, price_max: 0, min_discount: 0 },
+    filters: { block: '', only: '', replace: '', remove_lines: '', price_min: 0, price_max: 0, min_discount: 0 },
   },
   busca: {
     keywords: '', exclude: '', sort: 2, min_discount: 30, min_rating: 4.5, min_sales: 50, min_price: 0,

@@ -6,7 +6,7 @@ const wa = require('./whatsapp');
 const tg = require('./telegram');
 const images = require('./images');
 const render = require('./render');
-const { applyReplacements } = require('./text');
+const { applyReplacements, removeLines } = require('./text');
 
 const { db, log, parse } = store;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -76,6 +76,7 @@ async function buildMessage(item, automation) {
     text = r.text;
   }
   text = applyReplacements(text || '', cfg.filters && cfg.filters.replace);
+  text = removeLines(text, cfg.filters && cfg.filters.remove_lines);
   const media = payload.media || cfg.media || 'preview';
   const wantsImage = media === 'imagem' || payload.image_file;
   const image = wantsImage ? loadImage(payload, product) : null;

@@ -65,6 +65,14 @@ function applyReplacements(text, rules) {
   }).join('').replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
 }
 
+// Apaga as linhas que contêm algum destes termos (ex.: "curadoria", "@outroafiliado"). Nunca apaga linhas com link.
+function removeLines(text, terms) {
+  const list_ = String(terms || '').split(/[,\n]/).map((w) => fold(w).trim()).filter(Boolean);
+  if (!list_.length) return text;
+  return String(text).split('\n').filter((line) => /https?:\/\//.test(line) || !list_.some((w) => fold(line).includes(w)))
+    .join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 const brl = (n) => (n == null || !isFinite(n) || n === '' ? '' :
   Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
@@ -78,4 +86,4 @@ function parsePrice(s) {
   return isFinite(n) && n > 0 ? n : null;
 }
 
-module.exports = { fold, words, family, similarity, isDuplicate, list, checkFilters, applyReplacements, brl, parsePrice };
+module.exports = { removeLines, fold, words, family, similarity, isDuplicate, list, checkFilters, applyReplacements, brl, parsePrice };
