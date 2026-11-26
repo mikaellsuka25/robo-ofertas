@@ -126,3 +126,15 @@ test('painel: senha, grupos e link manual da Shopee', async () => {
   assert.strictEqual(store.get('min_discount'), '40');
   assert.match(store.get('template'), /\{link\}/, 'não aceita modelo sem link');
 });
+
+test('variedade: limita por palavra-chave, junta títulos parecidos e alterna categorias', () => {
+  const robot = require('../src/robot');
+  const store = require('../src/db');
+  assert.strictEqual(robot.titleKey('Smartwatch D20 Pro Bluetooth Preto'), robot.titleKey('SMARTWATCH D20 PRO original'));
+  store.db.exec(`UPDATE offers SET status='skipped' WHERE status='pending'`);
+  const mk = (kw, i, sc) => robot.addOffer({ source: 'shopee', item_key: kw + i, title: kw + ' modelo ' + i, price: 10, discount: 50, link: 'x', keyword: kw, score: sc });
+  for (let i = 0; i < 5; i++) mk('smartwatch', i, 100 - i);
+  mk('toalha', 1, 50);
+  store.db.prepare(`UPDATE offers SET status='sent', sent_at=? WHERE item_key='smartwatch0'`).run(Date.now());
+  assert.strictEqual(robot.nextOffer().keyword, 'toalha', 'depois de um smartwatch, vem outra categoria');
+});

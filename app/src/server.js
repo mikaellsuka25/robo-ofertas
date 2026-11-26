@@ -167,7 +167,8 @@ function filaPage(url) {
     <form method="post" action="/fila/${o.id}/pular"><button class="small sec">Pular</button></form>
     <a class="btn small sec" style="padding:6px 10px;font-size:13px" href="/fila/${o.id}/ver">Ver mensagem</a>`;
   return page(P('/fila', 'Fila'), `${flash(url)}
-  <div class="card"><h2>Próximas ofertas (${pending.length})</h2><p class="muted">As melhores (mais desconto, comissão e vendas) saem primeiro.</p>
+  <div class="card"><h2>Próximas ofertas (${pending.length})</h2><p class="muted">As melhores saem primeiro, alternando entre as palavras-chave.</p>
+    ${pending.length ? `<form method="post" action="/fila/limpar" onsubmit="return confirm('Tirar todas as ofertas da fila?')"><button class="small sec">🧹 Limpar fila</button></form>` : ''}
     ${pending.map((o) => offerRow(o, act(o))).join('') || '<p class="muted">Fila vazia. Toque em "Buscar ofertas agora" no Início.</p>'}</div>
   <div class="card"><h2>Enviadas recentemente</h2>${sent.map((o) => offerRow(o)).join('') || '<p class="muted">Nada ainda.</p>'}</div>`);
 }
@@ -217,6 +218,7 @@ function configPage(url) {
     ${f('send_every_min', 'Uma oferta a cada (min)')}${f('send_jitter_min', 'Variação (± min)', 'deixa menos robótico')}
     ${f('hour_start', 'Começa às (hora)')}${f('hour_end', 'Para às (hora)')}
     ${f('max_per_day', 'Máximo por dia')}${f('repost_after_days', 'Repetir produto após (dias)')}
+    ${f('max_per_keyword', 'Ofertas por palavra-chave', 'em cada busca (evita 20 smartwatches)')}${f('variety', 'Variar categoria a cada', 'não repete a mesma palavra nas últimas X ofertas')}
   </div></div>
   <div class="card"><h2>Formato da mensagem</h2>
     <label>Como a oferta aparece no grupo</label>
@@ -235,7 +237,7 @@ function configPage(url) {
 
 // ---------- Roteador ----------
 const NUM_KEYS = ['min_discount', 'max_price', 'min_rating', 'min_sales', 'min_commission', 'collect_every_min',
-  'send_every_min', 'send_jitter_min', 'hour_start', 'hour_end', 'max_per_day', 'repost_after_days'];
+  'send_every_min', 'send_jitter_min', 'hour_start', 'hour_end', 'max_per_day', 'repost_after_days', 'max_per_keyword', 'variety'];
 
 async function handle(req, res) {
   const url = new URL(req.url, 'http://x');
@@ -326,6 +328,10 @@ async function handle(req, res) {
       return back('/manual', 'Enviando para os grupos…');
     }
     return back('/manual', 'Colocado como próxima oferta da fila.');
+  }
+  if (p === '/fila/limpar') {
+    const r = db.prepare(`UPDATE offers SET status='skipped', error='fila limpa' WHERE status='pending'`).run();
+    return back('/fila', `${r.changes} ofertas tiradas da fila. Toque em "Buscar ofertas agora" para buscar de novo.`);
   }
   if ((m = p.match(/^\/fila\/(\d+)\/(enviar|pular)$/))) {
     const o = db.prepare(`SELECT * FROM offers WHERE id=? AND status='pending'`).get(Number(m[1]));

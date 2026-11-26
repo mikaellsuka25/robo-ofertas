@@ -49,6 +49,19 @@ function passesFilters(o, s) {
     o.commission >= Number(s.min_commission);
 }
 
+// "Smartwatch D20 Pro Bluetooth..." e "Smartwatch D20 Pro Original..." viram a mesma chave
+function titleKey(title) {
+  return String(title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((w) => w.length > 1).slice(0, 3).join(' ');
+}
+
+function similarRecent(tk, days) {
+  if (!tk) return false;
+  const since = Date.now() - days * 86400000;
+  return !!db.prepare(`SELECT 1 FROM offers WHERE title_key = ? AND created_at > ?
+    AND status IN ('pending','sent','sending') LIMIT 1`).get(tk, since);
+}
+
 function isRecent(source, itemKey, days) {
   const since = Date.now() - days * 86400000;
   return !!db.prepare(`SELECT 1 FROM offers WHERE source = ? AND item_key = ? AND created_at > ?
@@ -57,11 +70,11 @@ function isRecent(source, itemKey, days) {
 
 function addOffer(o) {
   db.prepare(`INSERT INTO offers(source,item_key,title,price,old_price,discount,commission,rating,sales,
-      image_url,link,extra_text,score,status,created_at)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?)`).run(
+      image_url,link,extra_text,score,status,created_at,keyword,title_key)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?,?,?)`).run(
     o.source, o.item_key, o.title || null, o.price || null, o.old_price || null, o.discount || 0,
     o.commission || 0, o.rating || 0, o.sales || 0, o.image_url || null, o.link || null,
-    o.extra_text || null, o.score ?? score(o), Date.now());
+    o.extra_text || null, o.score ?? score(o), Date.now(), o.keyword || null, o.title ? titleKey(o.title) : null);
 }
 
 let collecting = false;
@@ -78,13 +91,18 @@ async function collect() {
     for (const kw of keywords) {
       try {
         const nodes = await shopee.searchOffers({ keyword: kw, sortType: 2, limit: 50 });
-        for (const n of nodes) {
-          seen++;
-          const o = shopee.normalize(n);
-          if (!passesFilters(o, s)) continue;
-          if (isRecent(o.source, o.item_key, Number(s.repost_after_days) || 7)) continue;
+        const days = Number(s.repost_after_days) || 7;
+        const perKw = Math.max(1, Number(s.max_per_keyword) || 3);
+        // as melhores primeiro; só entram as X melhores desta palavra
+        const cands = nodes.map((n) => { seen++; return { ...shopee.normalize(n), keyword: kw }; })
+          .filter((o) => passesFilters(o, s)).sort((a, b) => score(b) - score(a));
+        let kwAdded = 0;
+        for (const o of cands) {
+          if (kwAdded >= perKw) break;
+          if (isRecent(o.source, o.item_key, days)) continue;
+          if (similarRecent(titleKey(o.title), days)) continue; // mesmo produto de outra loja
           addOffer(o);
-          added++;
+          kwAdded++; added++;
         }
       } catch (err) {
         log('erro', `Busca "${kw}": ${err.message}`);
@@ -134,6 +152,16 @@ async function sendOne(offer) {
   log('info', `Enviado: ${(offer.title || offer.extra_text || '').slice(0, 60)}`);
 }
 
+// Escolhe a próxima oferta evitando repetir a palavra-chave das últimas enviadas
+function nextOffer() {
+  const n = Math.max(0, Number(store.get('variety')) || 0);
+  const recent = n ? db.prepare(`SELECT keyword FROM offers WHERE status='sent' AND keyword IS NOT NULL
+    ORDER BY sent_at DESC LIMIT ?`).all(n).map((r) => r.keyword) : [];
+  const pending = db.prepare(`SELECT * FROM offers WHERE status='pending' ORDER BY score DESC, id ASC LIMIT 200`).all();
+  // manuais "próxima da fila" (score alto) passam na frente sempre
+  return pending.find((o) => o.score >= 9999) || pending.find((o) => !o.keyword || !recent.includes(o.keyword)) || pending[0];
+}
+
 let sending = false;
 async function senderTick() {
   const s = store.all();
@@ -143,7 +171,7 @@ async function senderTick() {
   if (sentToday() >= Number(s.max_per_day)) return 'limite do dia atingido';
   if (!selectedGroups().length) return 'sem grupos escolhidos';
   if ((await wa.state()) !== 'open') return 'WhatsApp desconectado';
-  const offer = db.prepare(`SELECT * FROM offers WHERE status='pending' ORDER BY score DESC, id ASC LIMIT 1`).get();
+  const offer = nextOffer();
   if (!offer) return 'fila vazia';
   sending = true;
   try { await sendOne(offer); return 'enviado'; }
@@ -179,6 +207,6 @@ function start() {
 }
 
 module.exports = {
-  start, collect, sendOne, formatMessage, addOffer, passesFilters, score, sentToday,
+  start, collect, sendOne, nextOffer, titleKey, formatMessage, addOffer, passesFilters, score, sentToday,
   status: () => ({ lastStatus, sending, collecting }),
 };

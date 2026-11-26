@@ -27,6 +27,12 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, level TEXT, msg TEXT);
 `);
 
+// Colunas novas (bancos criados antes desta versão)
+for (const [col, type] of [['keyword', 'TEXT'], ['title_key', 'TEXT']]) {
+  const has = db.prepare('PRAGMA table_info(offers)').all().some((c) => c.name === col);
+  if (!has) db.exec(`ALTER TABLE offers ADD COLUMN ${col} ${type}`);
+}
+
 // Se o robô reiniciou no meio de um envio, a oferta volta para a fila
 db.exec(`UPDATE offers SET status='pending' WHERE status='sending'`);
 
@@ -46,7 +52,9 @@ const DEFAULTS = {
   repost_after_days: '7',      // pode repetir o mesmo produto depois de X dias
   groups: '[]',                // grupos escolhidos (JSON)
   paused: '0',
-  send_mode: 'preview',        // preview = prévia do link | imagem = foto grande
+  send_mode: 'preview',
+  max_per_keyword: '3',        // quantas ofertas novas de cada palavra-chave por busca
+  variety: '5',                // não repete a mesma palavra-chave nas últimas X ofertas enviadas        // preview = prévia do link | imagem = foto grande
   shopee_app_id: '',
   shopee_secret: '',
   template:
