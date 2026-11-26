@@ -17,21 +17,23 @@ function click(kind, ref, ctx) {
   db.prepare('INSERT INTO clicks(kind,ref,at,ua) VALUES(?,?,?,?)').run(kind, String(ref), Date.now(), String(ctx.req.headers['user-agent'] || '').slice(0, 200));
 }
 function publicPage(title, color, body) {
-  const c = /^#[0-9a-f]{6}$/i.test(color) ? color : '#ee4d2d';
+  const c = /^#[0-9a-f]{6}$/i.test(color) ? color : '#7b1838';
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${esc(title)}</title><style>
-  *{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f5f5f5;color:#222}
-  header{background:${c};color:#fff;padding:22px 16px;text-align:center}header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.9}
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap');
+  *{box-sizing:border-box}body{margin:0;font:15px/1.5 Poppins,system-ui,sans-serif;background:#f7f8fb;color:#182033}
+  header{background:radial-gradient(900px 300px at 50% 0,${c}14,#fff);border-bottom:1px solid #e4e7ec;padding:34px 16px 26px;text-align:center}
+  header h1{margin:0;font-size:34px;font-weight:900;letter-spacing:-1.5px;color:${c}}header p{margin:8px auto 0;color:#667085;max-width:560px}
   main{max-width:1100px;margin:0 auto;padding:14px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
-  .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;flex-direction:column;text-decoration:none;color:inherit}
+  .card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e4e7ec;box-shadow:0 10px 30px rgba(16,24,40,.06);display:flex;flex-direction:column;text-decoration:none;color:inherit}
   .card img{width:100%;aspect-ratio:1;object-fit:cover;background:#eee}.card .b{padding:9px;display:flex;flex-direction:column;gap:4px;flex:1}
   .t{font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .p{font-weight:800;color:${c};font-size:17px}.o{color:#888;text-decoration:line-through;font-size:12px}.d{background:${c};color:#fff;border-radius:6px;padding:1px 6px;font-size:12px;font-weight:700;align-self:flex-start}
-  .btn{display:block;text-align:center;background:${c};color:#fff;padding:12px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:10px}
-  .btn.sec{background:#25d366}input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font:inherit}button{width:100%;padding:12px;border:0;border-radius:10px;background:${c};color:#fff;font:inherit;font-weight:700;margin-top:8px}
+  .btn{display:block;text-align:center;background:#1f78e6;color:#fff;padding:12px;border-radius:11px;font-weight:700;text-decoration:none;margin-top:10px;box-shadow:0 8px 20px rgba(31,120,230,.22)}
+  .btn.sec{background:#25d366}input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font:inherit}button{width:100%;padding:12px;border:0;border-radius:11px;background:#1f78e6;color:#fff;font:inherit;font-weight:700;margin-top:8px}
   form.s{display:flex;gap:8px;margin-bottom:12px}form.s input{flex:1}form.s button{width:auto;margin:0}
-  .box{background:#fff;border-radius:12px;padding:16px;max-width:520px;margin:0 auto}
+  .box{background:#fff;border:1px solid #e4e7ec;border-radius:18px;padding:20px;max-width:520px;margin:0 auto;box-shadow:0 26px 70px rgba(16,24,40,.08)}
   </style></head><body>${body}</body></html>`;
 }
 
@@ -73,7 +75,7 @@ module.exports = (r) => {
         <small>Com a vitrine ativa, a variável <code>{link_site}</code> leva para a página do produto na vitrine (com clique contado).</small>
         <p><button>Salvar</button></p></div></form>
       <div class="card"><h2>Cliques nos últimos 14 dias</h2>
-        <div style="display:flex;align-items:flex-end;gap:4px;height:120px">${days.map(([d, n]) => `<div style="flex:1;text-align:center"><div title="${n}" style="background:#ee4d2d;border-radius:4px 4px 0 0;height:${Math.round((n / max) * 100)}px;min-height:${n ? 2 : 0}px"></div><small style="font-size:10px">${d}</small></div>`).join('')}</div>
+        <div style="display:flex;align-items:flex-end;gap:4px;height:120px">${days.map(([d, n]) => `<div style="flex:1;text-align:center"><div title="${n}" style="background:#7b1838;border-radius:4px 4px 0 0;height:${Math.round((n / max) * 100)}px;min-height:${n ? 2 : 0}px"></div><small style="font-size:10px">${d}</small></div>`).join('')}</div>
         <p class="muted">Total: ${days.reduce((a, d) => a + d[1], 0)} cliques</p></div>
       <div class="card"><h2>Produtos mais clicados (30 dias)</h2><table>${top.map((t) => `<tr><td>${esc(t.title || `#${t.ref}`)}</td><td><b>${t.n}</b></td></tr>`).join('') || '<tr><td class="muted">Nenhum clique ainda.</td></tr>'}</table></div>`);
   });

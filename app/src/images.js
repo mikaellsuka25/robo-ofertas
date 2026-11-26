@@ -24,7 +24,7 @@ function watermarkSvg(width, height) {
   const corners = [[margin, margin], [width - w - margin, margin], [margin, height - h - margin], [width - w - margin, height - h - margin]];
   const [x, y] = corners[Math.floor(Math.random() * 4)];
   const op = Math.min(1, Math.max(0.1, Number(store.get('watermark_opacity') || 70) / 100));
-  const color = /^#[0-9a-f]{3,8}$/i.test(store.get('watermark_color')) ? store.get('watermark_color') : '#ee4d2d';
+  const color = /^#[0-9a-f]{3,8}$/i.test(store.get('watermark_color')) ? store.get('watermark_color') : '#7b1838';
   return Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
     <g opacity="${op}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${color}"/>
     <text x="${x + w / 2}" y="${y + h / 2}" font-family="DejaVu Sans, Arial, sans-serif" font-size="${font}" font-weight="700"

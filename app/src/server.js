@@ -86,10 +86,14 @@ async function handle(req, res) {
       return ctx.back('/entrar', 'Senha errada.', true);
     }
     return ctx.send(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>Entrar · Robô de Ofertas</title><style>body{font:16px system-ui;background:#f4f5f7;display:grid;place-items:center;min-height:100vh;margin:0}
-      form{background:#fff;padding:24px;border-radius:14px;border:1px solid #e3e5e8;width:min(340px,92vw)}input,button{width:100%;padding:11px;border-radius:8px;font:inherit;margin-top:8px}
-      input{border:1px solid #ccd0d5}button{background:#ee4d2d;color:#fff;border:0;font-weight:700}.e{color:#b3261e}</style></head><body>
-      <form method="post"><h2 style="margin-top:0">🤖 Robô de Ofertas</h2>
+      <title>Entrar · Robô de Ofertas</title><style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;900&display=swap');
+      body{font:15px Poppins,system-ui,sans-serif;background:radial-gradient(1200px 500px at 50% -10%,#fbf3f6,#f7f8fb);color:#182033;display:grid;place-items:center;min-height:100vh;margin:0}
+      form{background:#fff;padding:28px;border-radius:18px;border:1px solid #e4e7ec;width:min(360px,92vw);box-shadow:0 26px 70px rgba(16,24,40,.10)}
+      h2{margin:0 0 4px;font-weight:900;letter-spacing:-1px;font-size:26px}p.s{margin:0 0 16px;color:#667085}
+      .b{display:inline-block;padding:4px 10px;border-radius:999px;background:#fbf3f6;border:1px solid #e4bfd0;color:#7b1838;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+      input,button{width:100%;padding:12px;border-radius:11px;font:inherit;margin-top:8px}input{border:1px solid #d0d5dd}
+      button{background:#1f78e6;color:#fff;border:0;font-weight:700;box-shadow:0 8px 20px rgba(31,120,230,.25);cursor:pointer}.e{color:#b42318}</style></head><body>
+      <form method="post"><span class="b">● Painel do afiliado</span><h2>Robô de Ofertas</h2><p class="s">Entre para gerenciar suas ofertas.</p>
       ${url.searchParams.get('err') ? `<p class="e">${ui.esc(url.searchParams.get('err'))}</p>` : ''}
       ${PASSWORD() ? '' : '<p class="e">Defina PANEL_PASSWORD no arquivo .env.</p>'}
       <label>Senha</label><input name="senha" type="password" required autofocus><button>Entrar</button></form></body></html>`);

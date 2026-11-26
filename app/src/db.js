@@ -129,7 +129,7 @@ const DEFAULTS = {
   watermark_text: '',
   watermark_size: 'media',         // pequena | media | grande
   watermark_opacity: '70',
-  watermark_color: '#ee4d2d',
+  watermark_color: '#7b1838',
   // IA para a chamada (CTA)
   ai_key: '',
   ai_model: 'claude-haiku-5-5',
@@ -139,7 +139,7 @@ const DEFAULTS = {
   vitrine_enabled: '0',
   vitrine_name: 'Achadinhos',
   vitrine_description: 'As melhores ofertas da Shopee, escolhidas a dedo.',
-  vitrine_color: '#ee4d2d',
+  vitrine_color: '#7b1838',
   vitrine_group_link: '',
   vitrine_direct: '0',              // 1 = clicar no produto vai direto à loja
   gerador_enabled: '0',
