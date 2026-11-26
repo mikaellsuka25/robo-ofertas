@@ -79,8 +79,15 @@ async function buildMessage(item, automation) {
   const media = payload.media || cfg.media || 'preview';
   const wantsImage = media === 'imagem' || payload.image_file;
   const image = wantsImage ? loadImage(payload, product) : null;
+  // prévia do link montada pelo robô, com a foto e o nome do produto
+  const card = product && product.link ? {
+    url: payload.link || product.link,
+    title: store.get('preview_title') === '0' ? '' : (product.title || ''),
+    description: store.get('preview_title') === '0' || !product.price ? '' : `R$ ${require('./text').brl(payload.price || product.price)}${product.discount ? ` · ${product.discount}% OFF` : ''}`,
+    image: product.image_url,
+  } : null;
   return {
-    text, product, image,
+    text, product, image, card,
     preview: media !== 'imagem' && media !== 'texto',
     image_style: payload.image_style || cfg.image_style || 'padrao',
     mention_all: !!payload.mention_all,
@@ -128,14 +135,14 @@ async function sendItem(item, { automation } = {}) {
       for (let i = 0; i < list.length; i++) {
         const d = list[i];
         try {
-          const r = await wa.send(instance, d.id, { text: msg.text, image, preview: msg.preview, mentionAll: msg.mention_all });
+          const r = await wa.send(instance, d.id, { text: msg.text, image, preview: msg.preview, card: msg.card, mentionAll: msg.mention_all });
           markOwn(instance, r);
           record(d, instance, true);
         } catch (err) {
           // tenta outro número conectado antes de desistir
           let sent = false;
           for (const other of (await openInstances()).filter((x) => x !== instance)) {
-            try { markOwn(other, await wa.send(other, d.id, { text: msg.text, image, preview: msg.preview, mentionAll: msg.mention_all })); record(d, other, true); sent = true; break; } catch {}
+            try { markOwn(other, await wa.send(other, d.id, { text: msg.text, image, preview: msg.preview, card: msg.card, mentionAll: msg.mention_all })); record(d, other, true); sent = true; break; } catch {}
           }
           if (!sent) record(d, instance, false, err.message);
         }

@@ -120,7 +120,8 @@ const DEFAULTS = {
   shopee_secret: '',
   shopee_subid: 'robo',
   paused: '0',
-  instance_mode: 'automacao',      // automacao | alternada | dividida
+  instance_mode: 'automacao',
+  preview_title: '1',              // prévia do link com nome e preço do produto (0 = só a foto)      // automacao | alternada | dividida
   default_template: DEFAULT_TEMPLATE,
   coupon_phrase: '🎟️ Use o cupom *{codigo}* e ganhe {valor} OFF',
   // marca d'água

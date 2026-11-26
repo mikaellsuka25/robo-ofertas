@@ -7,6 +7,7 @@ const path = require('node:path');
 const http = require('node:http');
 const { DatabaseSync } = require('node:sqlite');
 const { startFakes } = require('./fakes');
+const { installFakeWa } = require('./fakewa');
 
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'robo-painel-'));
 process.env.DATA_DIR = DIR;
@@ -33,6 +34,7 @@ test.before(async () => {
   F = await startFakes();
   process.env.SHOPEE_ENDPOINT = F.base + '/graphql';
   process.env.EVOLUTION_URL = F.base;
+  installFakeWa(F.state);
   process.env.TELEGRAM_API = F.base;
   const server = require('../src/server');
   srv = http.createServer((q, s) => server.handle(q, s));
@@ -160,10 +162,3 @@ test('gerador público converte link', async () => {
   assert.match(await r.text(), /s\.shopee\.com\.br\/aff\w+\?sub=gerador/);
 });
 
-test('webhook exige o token certo', async () => {
-  const r = await fetch(`${P}/webhook/evolution?t=errado`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-  assert.strictEqual(r.status, 403);
-  const { WEBHOOK_TOKEN } = require('../src/server');
-  const ok = await fetch(`${P}/webhook/evolution?t=${WEBHOOK_TOKEN()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"event":"connection.update"}' });
-  assert.strictEqual(ok.status, 200);
-});

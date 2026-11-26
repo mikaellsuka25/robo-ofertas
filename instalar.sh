@@ -46,7 +46,7 @@ PANEL_PASSWORD="$(grep '^PANEL_PASSWORD=' .env | cut -d= -f2-)"
 if command -v ufw >/dev/null 2>&1 && ufw status | grep -q active; then ufw allow 80/tcp >/dev/null; fi
 
 say "4/4 Ligando tudo (a primeira vez leva uns 3 a 5 minutos)"
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
 
 IP="$(curl -fsS -4 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')"
 printf '\n\033[1;32m✅ Pronto!\033[0m\n\n'

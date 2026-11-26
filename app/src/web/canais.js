@@ -40,7 +40,7 @@ module.exports = (r) => {
   r.post('/instancias/novo', async (ctx) => {
     const name = 'num-' + crypto.randomBytes(3).toString('hex');
     db.prepare('INSERT INTO instances(name,label,created_at) VALUES(?,?,?)').run(name, String(ctx.form.label || 'Número').slice(0, 60), Date.now());
-    try { await wa.ensureInstance(name); } catch (err) { return ctx.back('/instancias', `Número salvo, mas o serviço do WhatsApp respondeu: ${err.message}`, true); }
+    try { await wa.ensureInstance(name); } catch (err) { return ctx.back('/instancias', `Número salvo, mas a conexão respondeu: ${err.message}`, true); }
     ctx.redirect(`/instancias/${name}/conectar`);
   });
   r.post('/instancias/:name/renomear', (ctx) => {
@@ -68,9 +68,10 @@ module.exports = (r) => {
       return ctx.page('Conectar', '/instancias', `<div class="card"><h2>✅ ${esc(inst.label || name)} conectado</h2>
         <p>Agora cadastre os grupos que vão receber as ofertas.</p><a class="btn" href="/grupos?inst=${encodeURIComponent(name)}&buscar=1">Buscar grupos deste número</a></div>`);
     }
-    if (st === 'servico_indisponivel') {
-      return ctx.page('Conectar', '/instancias', `<div class="card"><h2>⏳ O serviço do WhatsApp ainda está ligando</h2>
-        <p>Isso leva 1 ou 2 minutos depois de ligar o robô. Esta página atualiza sozinha.</p></div>`, { refresh: 15 });
+    if (st === 'connecting' && wa.hasSession(name)) {
+      return ctx.page('Conectar', '/instancias', `<div class="card"><h2>⏳ Reconectando ${esc(inst.label || name)}…</h2>
+        <p>Este número já foi conectado antes; o robô está restabelecendo a conexão. Esta página atualiza sozinha.</p>
+        <form method="post" action="/instancias/${encodeURIComponent(name)}/desconectar" onsubmit="return confirm('Apagar a conexão salva e gerar um QR code novo?')"><button class="small sec">Não conecta? Gerar QR code novo</button></form></div>`, { refresh: 10 });
     }
     let qr = null, err = '';
     try { qr = await wa.qrCode(name); } catch (e) { err = e.message; }
@@ -176,6 +177,9 @@ module.exports = (r) => {
         ${radio('alternada', 'Alternada', 'Cada promoção sai por um número, revezando entre eles para dividir o desgaste.')}
         ${radio('dividida', 'Dividida', 'Os grupos de cada envio são repartidos entre os números, ao mesmo tempo. Envio mais rápido.')}
         <small>Para Alternada e Dividida, todos os números precisam estar nos grupos de destino.</small></div>
+      <div class="card"><h2>Prévia do link</h2>
+        ${check('preview_title', 'Mostrar o nome e o preço do produto junto com a foto na prévia', s.preview_title !== '0')}
+        <small>A prévia é montada pelo robô com a foto oficial do produto. Desmarcado, aparece só a foto e o endereço.</small></div>
       <div class="card"><h2>Marca d'água nas fotos</h2>
         ${images.available() ? '' : '<p class="warn">O tratamento de imagens não está disponível nesta instalação; as fotos saem originais.</p>'}
         ${check('watermark_enabled', 'Colocar marca d\'água nas fotos (envios com imagem)', s.watermark_enabled === '1')}
@@ -190,6 +194,7 @@ module.exports = (r) => {
   r.post('/modo-envio', (ctx) => {
     const f = ctx.form;
     if (['automacao', 'alternada', 'dividida'].includes(f.instance_mode)) store.set('instance_mode', f.instance_mode);
+    store.set('preview_title', f.preview_title ? '1' : '0');
     store.set('watermark_enabled', f.watermark_enabled ? '1' : '0');
     store.set('watermark_text', String(f.watermark_text || '').slice(0, 30));
     if (['pequena', 'media', 'grande'].includes(f.watermark_size)) store.set('watermark_size', f.watermark_size);

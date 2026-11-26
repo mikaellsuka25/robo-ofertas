@@ -5,6 +5,7 @@ const os = require('node:os');
 const fs = require('node:fs');
 const path = require('node:path');
 const { startFakes } = require('./fakes');
+const { installFakeWa } = require('./fakewa');
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'robo2-'));
 process.env.EVOLUTION_API_KEY = 'chave';
@@ -15,6 +16,7 @@ test.before(async () => {
   F = await startFakes();
   process.env.SHOPEE_ENDPOINT = F.base + '/graphql';
   process.env.EVOLUTION_URL = F.base;
+  installFakeWa(F.state);
   process.env.TELEGRAM_API = F.base;
   process.env.ANTHROPIC_API = F.base;
   store = require('../src/db');
@@ -81,6 +83,8 @@ test('envio: manda para os grupos, registra histórico e marca a própria mensag
   assert.strictEqual(s.length, 1);
   assert.strictEqual(s[0].type, 'sendText');
   assert.strictEqual(s[0].body.linkPreview, true);
+  assert.ok(s[0].opts.card && s[0].opts.card.image && s[0].opts.card.title, 'prévia montada com foto e nome do produto');
+  assert.ok(s[0].opts.text.includes(s[0].opts.card.url), 'o link da prévia está no texto');
   assert.strictEqual(store.db.prepare(`SELECT COUNT(*) n FROM history WHERE queue_id=? AND status='sent'`).get(item.id).n, 1);
   assert.ok(store.db.prepare('SELECT 1 FROM seen_messages WHERE id=?').get(`robo:${s[0].id}`));
 });

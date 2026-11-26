@@ -9,16 +9,10 @@ server.start();
 engine.start();
 telegram.start();
 
-// Prepara os números (cria na Evolution e liga o webhook) assim que o serviço estiver de pé
-(async () => {
-  for (let i = 0; i < 60; i++) {
-    try {
-      for (const inst of dispatch.listInstances()) await wa.ensureInstance(inst.name);
-      store.log('info', 'Serviço do WhatsApp pronto.');
-      return;
-    } catch { await new Promise((r) => setTimeout(r, 10000)); }
-  }
-  store.log('erro', 'Não consegui falar com o serviço do WhatsApp (Evolution API).');
-})();
+// WhatsApp: as mensagens dos grupos chegam direto para as automações
+wa.onMessage(engine.onWebhook);
+wa.startAll(dispatch.listInstances().map((i) => i.name))
+  .then(() => store.log('info', 'WhatsApp iniciado.'))
+  .catch((err) => store.log('erro', `WhatsApp: ${err.message}`));
 
 process.on('unhandledRejection', (err) => store.log('erro', `Inesperado: ${err && err.message}`));

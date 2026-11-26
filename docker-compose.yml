@@ -1,4 +1,4 @@
-# Robô de Ofertas: painel + WhatsApp (Evolution API) + bancos de dados
+# Robô de Ofertas: painel + conexão com o WhatsApp (tudo num serviço só)
 # Tudo sobe com: docker compose up -d
 
 services:
@@ -8,71 +8,8 @@ services:
     ports:
       - "80:3000"             # painel: http://IP-DO-SERVIDOR (no PC: http://localhost)
     env_file: .env
-    environment:
-      EVOLUTION_URL: http://evolution:8080
-      SELF_URL: http://robo:3000       # endereço que o WhatsApp usa para avisar o robô de mensagens novas
-      EVOLUTION_INSTANCE: robo
     volumes:
-      - robo_data:/data
-    depends_on:
-      - evolution
-
-  evolution:
-    image: evoapicloud/evolution-api:v2.3.7
-    restart: always
-    # sem "ports": o WhatsApp fica fechado para a internet, só o robô fala com ele
-    env_file: .env             # AUTHENTICATION_API_KEY vem daqui
-    environment:
-      SERVER_URL: http://evolution:8080
-      DATABASE_ENABLED: "true"
-      DATABASE_PROVIDER: postgresql
-      # o banco só existe dentro do Docker (sem porta aberta), então a senha é fixa:
-      # assim ela nunca fica diferente da senha com que o banco foi criado
-      DATABASE_CONNECTION_URI: postgresql://evolution:evolution_interno@postgres:5432/evolution?schema=public
-      DATABASE_CONNECTION_CLIENT_NAME: robo_ofertas
-      DATABASE_SAVE_DATA_INSTANCE: "true"
-      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
-      DATABASE_SAVE_MESSAGE_UPDATE: "false"
-      DATABASE_SAVE_DATA_CONTACTS: "false"
-      DATABASE_SAVE_DATA_CHATS: "false"
-      DATABASE_SAVE_DATA_LABELS: "false"
-      DATABASE_SAVE_DATA_HISTORIC: "false"
-      CACHE_REDIS_ENABLED: "true"
-      CACHE_REDIS_URI: redis://redis:6379/6
-      CACHE_REDIS_PREFIX_KEY: evolution
-      CACHE_REDIS_SAVE_INSTANCES: "false"
-      CACHE_LOCAL_ENABLED: "false"
-      CONFIG_SESSION_PHONE_CLIENT: Robo Ofertas
-      CONFIG_SESSION_PHONE_NAME: Chrome
-      QRCODE_LIMIT: "30"
-      DEL_INSTANCE: "false"
-      LANGUAGE: pt-BR
-      TZ: America/Sao_Paulo
-    volumes:
-      - evolution_instances:/evolution/instances
-    depends_on:
-      - postgres
-      - redis
-
-  postgres:
-    image: postgres:16-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: evolution
-      POSTGRES_PASSWORD: evolution_interno
-      POSTGRES_DB: evolution
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    restart: always
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
+      - robo_data:/data       # banco, sessões do WhatsApp e imagens
 
 volumes:
   robo_data:
-  evolution_instances:
-  postgres_data:
-  redis_data:

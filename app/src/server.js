@@ -7,7 +7,6 @@ const ui = require('./web/ui');
 const { log } = store;
 const PASSWORD = () => process.env.PANEL_PASSWORD || '';
 const TOKEN = () => crypto.createHmac('sha256', PASSWORD() || 'x').update('sessao-painel').digest('hex');
-const WEBHOOK_TOKEN = () => crypto.createHmac('sha256', process.env.EVOLUTION_API_KEY || 'x').update('webhook').digest('hex').slice(0, 24);
 
 let Busboy = null;
 try { Busboy = require('busboy'); } catch {}
@@ -77,13 +76,6 @@ async function handle(req, res) {
   const p = url.pathname.replace(/\/+$/, '') || '/';
 
   if (p === '/saude') return ctx.send('ok');
-  if (p === '/webhook/evolution' && req.method === 'POST') {
-    if (url.searchParams.get('t') !== WEBHOOK_TOKEN()) return ctx.json({ ok: false }, 403);
-    const body = await readBody(req);
-    ctx.json({ ok: true });
-    require('./automations').onWebhook(body.json || {}).catch((err) => log('erro', `Webhook: ${err.message}`));
-    return;
-  }
   if (p === '/entrar') {
     if (req.method === 'POST') {
       const { params } = await readBody(req);
@@ -139,4 +131,4 @@ function start(port = Number(process.env.PORT) || 3000) {
   return server;
 }
 
-module.exports = { start, handle, WEBHOOK_TOKEN };
+module.exports = { start, handle };

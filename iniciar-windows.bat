@@ -25,7 +25,7 @@ if errorlevel 1 (
 )
 
 echo  Ligando tudo. Na primeira vez leva uns 5 minutos...
-docker compose up -d --build --force-recreate
+docker compose up -d --build --force-recreate --remove-orphans
 if errorlevel 1 (
   echo.
   echo  [!] Deu erro ao ligar. Tire um print desta janela e mande para o Claude.

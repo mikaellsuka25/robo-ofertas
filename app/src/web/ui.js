@@ -87,7 +87,7 @@ const check = (name, label, on, { value = '1', hint = '' } = {}) =>
 
 const pill = (on, yes = 'ativa', no = 'pausada') => `<span class="pill ${on ? 'on' : 'off'}">${on ? yes : no}</span>`;
 const STATE = {
-  open: ['✅ Conectado', 'ok'], connecting: ['⏳ Aguardando QR code', 'warn'], close: ['❌ Desconectado', 'bad'],
+  open: ['✅ Conectado', 'ok'], connecting: ['⏳ Conectando…', 'warn'], close: ['❌ Desconectado', 'bad'],
   sem_instancia: ['❌ Desconectado', 'bad'], servico_indisponivel: ['⚠️ Serviço do WhatsApp iniciando…', 'warn'],
 };
 const stateLabel = (s) => { const [l, c] = STATE[s] || [s, 'warn']; return `<span class="${c}">${l}</span>`; };
