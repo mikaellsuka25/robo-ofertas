@@ -63,17 +63,33 @@ const POR_TIPO = {
   carregador: ['Bateria cheia em minutos'],
 };
 
+// Frases neutras: servem para qualquer produto (usadas por padrão)
 const GENERICAS = [
-  'Achadinho pra deixar a casa mais bonita',
-  'Preço desses não dura muito',
-  'Daqueles achados que dá vontade de contar pra todo mundo',
-  'Sua casa vai ficar outra com isso aqui',
-  'Praticidade que faz diferença no dia a dia',
+  'Preço bom assim não dura muito',
   'Corre que esse preço tá bom demais',
-  'Útil, bonito e baratinho',
-  'Aquele detalhe que faltava na sua casa',
-  'Promoção boa é assim: chegou, aproveitou',
-  'Pra quem ama casa organizada e bonita',
+  'Achadinho do dia',
+  'Olha o preço disso',
+  'Oferta imperdível',
+  'Promoção relâmpago',
+  'Baixou o preço',
+  'Tá valendo muito a pena',
+  'Aproveita antes que acabe',
+  'Preço de achadinho',
+  'Esse vale cada centavo',
+  'Desconto bom demais pra deixar passar',
+  'Oportunidade do dia',
+  'Corre que é por tempo limitado',
+  'Preço caiu, aproveita',
+  'Achado com preço baixo',
+  'Super oferta liberada',
+  'Melhor preço que vimos hoje',
+  'Garanta o seu',
+  'Promoção que vale a pena',
+  'Olha que achado',
+  'Vale muito a pena conferir',
+  'Desconto liberado',
+  'Pechincha do dia',
+  'Não deixa passar essa',
 ];
 
 // Escolha estável: a mesma oferta sempre recebe a mesma frase
@@ -83,8 +99,11 @@ function hash(str) {
   return h;
 }
 
+// modo: 'neutras' (padrão) usa só as frases neutras; 'tipo' usa frases por tipo de produto quando houver
 function chamada(tipo, chave, maiusculas = true) {
-  const lista = (tipo && POR_TIPO[tipo]) || GENERICAS;
+  let modo = 'neutras';
+  try { modo = require('./db').get('cta_mode') || 'neutras'; } catch {}
+  const lista = (modo === 'tipo' && tipo && POR_TIPO[tipo]) || GENERICAS;
   const frase = lista[hash(chave) % lista.length];
   return maiusculas ? frase.toLocaleUpperCase('pt-BR') : frase;
 }

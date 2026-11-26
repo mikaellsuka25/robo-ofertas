@@ -45,6 +45,7 @@ module.exports = (r) => {
         <p class="muted" style="margin:8px 0 4px">Como fica:</p><div class="wa">${waHtml(previews[k])}</div></div>`).join('')}
       <div class="card"><h2>Chamada (CTA)</h2>
         <form method="post" action="/textos/cta">
+        ${select('cta_mode', 'Frases prontas (quando não há IA)', s.cta_mode, [['neutras', 'Neutras: servem para qualquer produto (recomendado)'], ['tipo', 'Por tipo de produto (cadeira, toalha, espelho…)']])}
         ${area('cta_guide', 'Como a chamada deve ser escrita', s.cta_guide, { rows: 4, hint: 'Tom, público, bordões e o que evitar. Vale quando há uma chave de IA em Credenciais; sem chave, o robô usa o banco de frases prontas por tipo de produto.' })}
         ${field('coupon_phrase', 'Frase do cupom ({cupom_texto})', s.coupon_phrase, { hint: 'Use {codigo} e {valor}. Ex.: 🎟️ Use o cupom *{codigo}* e ganhe {valor} OFF', attrs: 'maxlength="300"' })}
         <p><button>Salvar</button></p></form></div>`);
@@ -62,6 +63,7 @@ module.exports = (r) => {
   r.post('/textos', (ctx) => saveTpl(ctx, 0));
   r.post('/textos/cta', (ctx) => {
     store.set('cta_guide', String(ctx.form.cta_guide || '').slice(0, 1500));
+    if (['neutras', 'tipo'].includes(ctx.form.cta_mode)) store.set('cta_mode', ctx.form.cta_mode);
     store.set('coupon_phrase', String(ctx.form.coupon_phrase || '').slice(0, 300));
     ctx.back('/textos', 'Salvo.');
   });

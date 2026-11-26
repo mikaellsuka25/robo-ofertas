@@ -133,6 +133,7 @@ const DEFAULTS = {
   // IA para a chamada (CTA)
   ai_key: '',
   ai_model: 'claude-haiku-5-5',
+  cta_mode: 'neutras',            // neutras | tipo (banco de frases sem IA)
   cta_guide: 'Público: famílias brasileiras que amam achadinhos para a casa. Tom: animado, próximo, sem exageros. Frases curtas (até 12 palavras). Sem emojis. Nunca invente preço ou característica que não esteja no nome do produto.',
   // páginas públicas
   public_url: '',
