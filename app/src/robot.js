@@ -55,11 +55,39 @@ function titleKey(title) {
     .replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((w) => w.length > 1).slice(0, 3).join(' ');
 }
 
-function similarRecent(tk, days) {
-  if (!tk) return false;
-  const since = Date.now() - days * 86400000;
-  return !!db.prepare(`SELECT 1 FROM offers WHERE title_key = ? AND created_at > ?
-    AND status IN ('pending','sent','sending') LIMIT 1`).get(tk, since);
+// ---------- Semelhança entre produtos ----------
+const STOP = new Set(('de da do das dos e com para por em no na nos nas a o as os um uma kit jogo conjunto par ' +
+  'pecas pcs pc unidades un und cm mm m ml l kg g x novo nova original promocao oferta frete gratis envio ' +
+  'imediato pronta entrega lancamento premium luxo top super mega estilo tipo cor cores varias modelo mini grande pequeno').split(' '));
+
+function words(title) {
+  return String(title || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)
+    .filter((w) => w.length > 2 && !STOP.has(w) && !/^\d+$/.test(w))
+    .map((w) => w.replace(/(oes|aes)$/, 'ao').replace(/s$/, '')); // plural simples: cadeiras -> cadeira
+}
+
+// "Família" do produto = primeira palavra importante do título (cadeira, espelho, toalha...)
+function family(o) {
+  const w = words(o.title);
+  return w[0] || (o.keyword ? words(o.keyword)[0] : null) || null;
+}
+
+// Quanto dois títulos se parecem (0 a 1), olhando as primeiras palavras importantes
+function similarity(a, b) {
+  const A = new Set(words(a).slice(0, 8)), B = new Set(words(b).slice(0, 8));
+  if (!A.size || !B.size) return 0;
+  let inter = 0; for (const w of A) if (B.has(w)) inter++;
+  return inter / Math.min(A.size, B.size);
+}
+
+function titleKey(title) { return words(title).slice(0, 3).join(' '); }
+
+function isDuplicate(o, existing) {
+  return existing.some((e) =>
+    (e.image_url && o.image_url && e.image_url === o.image_url) ||
+    (similarity(o.title, e.title) >= 0.6 &&
+      (!e.price || !o.price || Math.abs(e.price - o.price) / Math.max(e.price, o.price) <= 0.35)));
 }
 
 function isRecent(source, itemKey, days) {
@@ -96,12 +124,16 @@ async function collect() {
         // as melhores primeiro; só entram as X melhores desta palavra
         const cands = nodes.map((n) => { seen++; return { ...shopee.normalize(n), keyword: kw }; })
           .filter((o) => passesFilters(o, s)).sort((a, b) => score(b) - score(a));
+        const existing = db.prepare(`SELECT title, price, image_url FROM offers
+          WHERE created_at > ? AND status IN ('pending','sent','sending') AND title IS NOT NULL`)
+          .all(Date.now() - days * 86400000);
         let kwAdded = 0;
         for (const o of cands) {
           if (kwAdded >= perKw) break;
           if (isRecent(o.source, o.item_key, days)) continue;
-          if (similarRecent(titleKey(o.title), days)) continue; // mesmo produto de outra loja
+          if (isDuplicate(o, existing)) continue; // mesmo produto (ou quase) de outra loja
           addOffer(o);
+          existing.push(o);
           kwAdded++; added++;
         }
       } catch (err) {
@@ -152,15 +184,25 @@ async function sendOne(offer) {
   log('info', `Enviado: ${(offer.title || offer.extra_text || '').slice(0, 60)}`);
 }
 
-// Escolhe a próxima oferta evitando repetir a palavra-chave das últimas enviadas
-function nextOffer() {
+// Planeja a ordem de envio: melhores primeiro, sem repetir a mesma família
+// (cadeira, espelho...) nas últimas X ofertas enviadas
+function plan(limit = 1) {
   const n = Math.max(0, Number(store.get('variety')) || 0);
-  const recent = n ? db.prepare(`SELECT keyword FROM offers WHERE status='sent' AND keyword IS NOT NULL
-    ORDER BY sent_at DESC LIMIT ?`).all(n).map((r) => r.keyword) : [];
-  const pending = db.prepare(`SELECT * FROM offers WHERE status='pending' ORDER BY score DESC, id ASC LIMIT 200`).all();
-  // manuais "próxima da fila" (score alto) passam na frente sempre
-  return pending.find((o) => o.score >= 9999) || pending.find((o) => !o.keyword || !recent.includes(o.keyword)) || pending[0];
+  const recent = db.prepare(`SELECT title, keyword FROM offers WHERE status='sent' AND source != 'manual'
+    ORDER BY sent_at DESC LIMIT ?`).all(n).map((o) => family(o)).filter(Boolean);
+  const pending = db.prepare(`SELECT * FROM offers WHERE status='pending' ORDER BY score DESC, id ASC LIMIT 300`).all();
+  const order = [];
+  while (pending.length && order.length < limit) {
+    let i = pending.findIndex((o) => o.score >= 9999);              // manual "próxima da fila"
+    if (i < 0) i = pending.findIndex((o) => o.source === 'manual' || !recent.includes(family(o)));
+    if (i < 0) i = 0;                                                // só sobrou a mesma família
+    const [o] = pending.splice(i, 1);
+    order.push(o);
+    if (o.source !== 'manual') { recent.unshift(family(o)); if (recent.length > n) recent.length = n; }
+  }
+  return order;
 }
+function nextOffer() { return plan(1)[0]; }
 
 let sending = false;
 async function senderTick() {
@@ -207,6 +249,6 @@ function start() {
 }
 
 module.exports = {
-  start, collect, sendOne, nextOffer, titleKey, formatMessage, addOffer, passesFilters, score, sentToday,
+  start, collect, sendOne, nextOffer, plan, family, similarity, titleKey, formatMessage, addOffer, passesFilters, score, sentToday,
   status: () => ({ lastStatus, sending, collecting }),
 };

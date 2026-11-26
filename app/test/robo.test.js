@@ -127,14 +127,24 @@ test('painel: senha, grupos e link manual da Shopee', async () => {
   assert.match(store.get('template'), /\{link\}/, 'não aceita modelo sem link');
 });
 
-test('variedade: limita por palavra-chave, junta títulos parecidos e alterna categorias', () => {
+test('variedade: produtos parecidos e mesmo tipo em sequência', () => {
   const robot = require('../src/robot');
   const store = require('../src/db');
-  assert.strictEqual(robot.titleKey('Smartwatch D20 Pro Bluetooth Preto'), robot.titleKey('SMARTWATCH D20 PRO original'));
-  store.db.exec(`UPDATE offers SET status='skipped' WHERE status='pending'`);
-  const mk = (kw, i, sc) => robot.addOffer({ source: 'shopee', item_key: kw + i, title: kw + ' modelo ' + i, price: 10, discount: 50, link: 'x', keyword: kw, score: sc });
-  for (let i = 0; i < 5; i++) mk('smartwatch', i, 100 - i);
-  mk('toalha', 1, 50);
-  store.db.prepare(`UPDATE offers SET status='sent', sent_at=? WHERE item_key='smartwatch0'`).run(Date.now());
-  assert.strictEqual(robot.nextOffer().keyword, 'toalha', 'depois de um smartwatch, vem outra categoria');
+  // os exemplos reais que apareceram na fila
+  const e1 = 'Espelho Redondo Adnet Couro com Alça 60cm 50cm 40cm 30cm 20cm Decorativo + Pino Pendurador';
+  const e2 = 'Espelho Redondo Decorativo Adnet Supenso de Parede 60cm 50cm 40cm 30cm 20cm Com Alça + Pino';
+  assert.ok(robot.similarity(e1, e2) >= 0.6, 'espelhos iguais detectados');
+  assert.ok(robot.similarity(e1, 'Kit 6 vasos decorativos com plantas artificiais') < 0.6);
+  for (const t of ['Cadeira de Escritório Ergonômica Giratória', 'Cadeira Gamer Profissional Reclinável',
+    'kIT 2 Cadeira Lua Decorativa Poltrona', 'kit 2 Cadeiras de Jantar Lua'])
+    assert.strictEqual(robot.family({ title: t }), 'cadeira', t);
+
+  store.db.exec(`UPDATE offers SET status='skipped' WHERE status IN ('pending','sent')`);
+  let k = 0;
+  const mk = (title, sc) => robot.addOffer({ source: 'shopee', item_key: 'v' + k++, title, price: 10, discount: 50, link: 'x', score: sc });
+  mk('Cadeira Gamer Profissional', 100); mk('Cadeira de Escritório Ergonômica', 99); mk('kit 2 Cadeira Lua', 98);
+  mk('Espelho Redondo Adnet', 97); mk('Bonsai Artificial', 50); mk('Manta Cobertor Microfibra', 40);
+  const fams = robot.plan(6).map((o) => robot.family(o));
+  for (let i = 1; i < fams.length - 2; i++) assert.notStrictEqual(fams[i], fams[i - 1], fams.join(','));
+  assert.deepStrictEqual(fams.slice(0, 4), ['cadeira', 'espelho', 'bonsai', 'manta']);
 });

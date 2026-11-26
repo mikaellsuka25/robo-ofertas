@@ -161,13 +161,13 @@ function offerRow(o, actions) {
 }
 
 function filaPage(url) {
-  const pending = db.prepare(`SELECT * FROM offers WHERE status='pending' ORDER BY score DESC, id ASC LIMIT 40`).all();
+  const pending = robot.plan(40); // na ordem em que vão sair
   const sent = db.prepare(`SELECT * FROM offers WHERE status IN ('sent','error') ORDER BY COALESCE(sent_at, created_at) DESC LIMIT 25`).all();
   const act = (o) => `<form method="post" action="/fila/${o.id}/enviar"><button class="small">Enviar agora</button></form>
     <form method="post" action="/fila/${o.id}/pular"><button class="small sec">Pular</button></form>
     <a class="btn small sec" style="padding:6px 10px;font-size:13px" href="/fila/${o.id}/ver">Ver mensagem</a>`;
   return page(P('/fila', 'Fila'), `${flash(url)}
-  <div class="card"><h2>Próximas ofertas (${pending.length})</h2><p class="muted">As melhores saem primeiro, alternando entre as palavras-chave.</p>
+  <div class="card"><h2>Próximas ofertas (${db.prepare(`SELECT COUNT(*) n FROM offers WHERE status='pending'`).get().n})</h2><p class="muted">Na ordem em que vão sair: as melhores primeiro, sem repetir o mesmo tipo de produto em seguida.</p>
     ${pending.length ? `<form method="post" action="/fila/limpar" onsubmit="return confirm('Tirar todas as ofertas da fila?')"><button class="small sec">🧹 Limpar fila</button></form>` : ''}
     ${pending.map((o) => offerRow(o, act(o))).join('') || '<p class="muted">Fila vazia. Toque em "Buscar ofertas agora" no Início.</p>'}</div>
   <div class="card"><h2>Enviadas recentemente</h2>${sent.map((o) => offerRow(o)).join('') || '<p class="muted">Nada ainda.</p>'}</div>`);
@@ -218,7 +218,7 @@ function configPage(url) {
     ${f('send_every_min', 'Uma oferta a cada (min)')}${f('send_jitter_min', 'Variação (± min)', 'deixa menos robótico')}
     ${f('hour_start', 'Começa às (hora)')}${f('hour_end', 'Para às (hora)')}
     ${f('max_per_day', 'Máximo por dia')}${f('repost_after_days', 'Repetir produto após (dias)')}
-    ${f('max_per_keyword', 'Ofertas por palavra-chave', 'em cada busca (evita 20 smartwatches)')}${f('variety', 'Variar categoria a cada', 'não repete a mesma palavra nas últimas X ofertas')}
+    ${f('max_per_keyword', 'Ofertas por palavra-chave', 'em cada busca (evita 20 smartwatches)')}${f('variety', 'Não repetir o mesmo tipo em', 'ex.: 5 = depois de uma cadeira, só outra cadeira 5 ofertas depois')}
   </div></div>
   <div class="card"><h2>Formato da mensagem</h2>
     <label>Como a oferta aparece no grupo</label>
